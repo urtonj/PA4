@@ -9,8 +9,6 @@ from nltk.tree import Tree
 '''Setup for training/test data'''
 training_files = '/Users/jasonurton/Desktop/PA4_Data/training'
 test_files = '/Users/jasonurton/Desktop/PA4_Data/test'
-training_set = []; test_set = []
-training_featureset = []; test_featureset = []
 
 training_reader = ChunkedCorpusReader(training_files, r'wsj_.*\.pos',
     sent_tokenizer=RegexpTokenizer(r'(?<=/\.)\s*(?![^\[]*\])', gaps=True),
@@ -21,7 +19,9 @@ test_reader = ChunkedCorpusReader(test_files, r'wsj_.*\.pos',
     sent_tokenizer=RegexpTokenizer(r'(?<=/\.)\s*(?![^\[]*\])', gaps=True),
     para_block_reader=tagged_treebank_para_block_reader,
     str2chunktree=superchunk_reader.superchunk2tree) 
-     
+
+training_set = []; test_set = []
+
 for file in training_reader.chunked_paras():
     for para in file:
         training_set.append(list(superchunk_reader.tree2iob(para)))
@@ -47,7 +47,7 @@ def get_features(word, sent, i):
     features = {}
     features['Current Word'] = word[0]
     features['POS'] = word[1]
-    #features['NP Tag'] = word[2]
+    features['NP Tag'] = word[2]
     features['Previous Word'] = get_previous_word(sent, i)
     features['SNP Suffix (-1)'] = get_SNP_suffix_1(sent, i)
     features['SNP Suffix (-2)'] = get_SNP_suffix_2(sent, i)
@@ -73,16 +73,41 @@ test_featureset = get_featureset(test_set)
 bayes_classifier = nltk.NaiveBayesClassifier.train(training_featureset)
 results = get_results(bayes_classifier)
 
-print 'Classifier accuracy: %s' % accuracy(bayes_classifier, test_featureset)
-print 'B Precision: %s' % precision(results[0]['B-SNP'], results[1]['B-SNP'])
-print 'B Recall: %s' % recall(results[0]['B-SNP'], results[1]['B-SNP'])
-print 'I Precision: %s' % precision(results[0]['I-SNP'], results[1]['I-SNP'])
-print 'I Recall: %s' % recall(results[0]['I-SNP'], results[1]['I-SNP'])
-print 'O Precision: %s' % precision(results[0]['O'], results[1]['O'])
-print 'O Recall: %s' % recall(results[0]['O'], results[1]['O'])
+print '''
+Classifier accuracy (Bayes): %s
+B Precision (Bayes): %s
+B Recall (Bayes): %s
+I Precision (Bayes): %s
+I Recall (Bayes): %s
+O Precision (Bayes): %s
+O Recall (Bayes): %s
+''' % (accuracy(bayes_classifier, test_featureset), 
+       precision(results[0]['B-SNP'], results[1]['B-SNP']), 
+       recall(results[0]['B-SNP'], results[1]['B-SNP']), 
+       precision(results[0]['I-SNP'], results[1]['I-SNP']),
+       recall(results[0]['I-SNP'], results[1]['I-SNP']),
+       precision(results[0]['O'], results[1]['O']),
+       recall(results[0]['O'], results[1]['O']))
 
 #bayes_classifier.show_most_informative_features(10)
 
-#maxent_classifier = nltk.MaxentClassifier.train(training_featureset)
-#print "Classifier accuracy: %s" % accuracy(maxent_classifier, test_featureset);
+maxent_classifier = nltk.MaxentClassifier.train(training_featureset)
+maxent_results = get_results(maxent_classifier)
+
+print '''
+Classifier accuracy (MaxEnt): %s
+B Precision (MaxEnt): %s
+B Recall (MaxEnt): %s
+I Precision (MaxEnt): %s
+I Recall (MaxEnt): %s
+O Precision (MaxEnt): %s
+O Recall (MaxEnt): %s
+''' % (accuracy(maxent_classifier, test_featureset), 
+       precision(maxent_results[0]['B-SNP'], maxent_results[1]['B-SNP']), 
+       recall(maxent_results[0]['B-SNP'], maxent_results[1]['B-SNP']), 
+       precision(maxent_results[0]['I-SNP'], maxent_results[1]['I-SNP']),
+       recall(maxent_results[0]['I-SNP'], maxent_results[1]['I-SNP']),
+       precision(maxent_results[0]['O'], maxent_results[1]['O']),
+       recall(maxent_results[0]['O'], maxent_results[1]['O']))
+       
 #maxent_classifier.show_most_informative_features(10)
