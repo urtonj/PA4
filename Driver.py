@@ -2,9 +2,7 @@ import nltk, superchunk_reader, re, collections
 from nltk.metrics import precision, recall
 from nltk.classify import accuracy
 from nltk.corpus.reader import *
-from nltk.tag.util import str2tuple
 from nltk.tokenize import RegexpTokenizer
-from nltk.tree import Tree
 
 '''Setup for training/test data'''
 training_files = '/Users/jasonurton/Desktop/PA4_Data/training'
