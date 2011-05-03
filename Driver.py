@@ -45,7 +45,7 @@ def get_features(word, sent, i):
     features = {}
     features['Current Word'] = word[0]
     features['POS'] = word[1]
-    features['NP Tag'] = word[2]
+    #features['NP Tag'] = word[2]
     features['Previous Word'] = get_previous_word(sent, i)
     features['SNP Suffix (-1)'] = get_SNP_suffix_1(sent, i)
     features['SNP Suffix (-2)'] = get_SNP_suffix_2(sent, i)
@@ -61,51 +61,37 @@ def get_results(classifier, ref_results = collections.defaultdict(set),
     test_results = collections.defaultdict(set)):
     for i, (features, label) in enumerate(training_featureset):
         ref_results[label].add(i)
-        observed = classifier.classify(features)
-        test_results[observed].add(i)
+        test_results[classifier.classify(features)].add(i)
     return (ref_results, test_results)
-        
-training_featureset = get_featureset(training_set)
-test_featureset = get_featureset(test_set)
 
-bayes_classifier = nltk.NaiveBayesClassifier.train(training_featureset)
-results = get_results(bayes_classifier)
-
-print '''
-Classifier accuracy (Bayes): %s
-B Precision (Bayes): %s
-B Recall (Bayes): %s
-I Precision (Bayes): %s
-I Recall (Bayes): %s
-O Precision (Bayes): %s
-O Recall (Bayes): %s
-''' % (accuracy(bayes_classifier, test_featureset), 
+def print_results(classifier, featureset, results, name):
+    print '''
+    %s classifier results:
+    Classifier accuracy: %s
+    B Precision: %s
+    B Recall: %s
+    I Precision: %s
+    I Recall: %s
+    O Precision: %s
+    O Recall: %s
+    ''' % (name, 
+       accuracy(classifier, featureset), 
        precision(results[0]['B-SNP'], results[1]['B-SNP']), 
        recall(results[0]['B-SNP'], results[1]['B-SNP']), 
        precision(results[0]['I-SNP'], results[1]['I-SNP']),
        recall(results[0]['I-SNP'], results[1]['I-SNP']),
        precision(results[0]['O'], results[1]['O']),
        recall(results[0]['O'], results[1]['O']))
+       
+training_featureset = get_featureset(training_set)
+test_featureset = get_featureset(test_set)
 
+bayes_classifier = nltk.NaiveBayesClassifier.train(training_featureset)
+results = get_results(bayes_classifier)
+print_results(bayes_classifier, test_featureset, results, 'Naive Bayes')
 #bayes_classifier.show_most_informative_features(10)
 
 maxent_classifier = nltk.MaxentClassifier.train(training_featureset)
 maxent_results = get_results(maxent_classifier)
-
-print '''
-Classifier accuracy (MaxEnt): %s
-B Precision (MaxEnt): %s
-B Recall (MaxEnt): %s
-I Precision (MaxEnt): %s
-I Recall (MaxEnt): %s
-O Precision (MaxEnt): %s
-O Recall (MaxEnt): %s
-''' % (accuracy(maxent_classifier, test_featureset), 
-       precision(maxent_results[0]['B-SNP'], maxent_results[1]['B-SNP']), 
-       recall(maxent_results[0]['B-SNP'], maxent_results[1]['B-SNP']), 
-       precision(maxent_results[0]['I-SNP'], maxent_results[1]['I-SNP']),
-       recall(maxent_results[0]['I-SNP'], maxent_results[1]['I-SNP']),
-       precision(maxent_results[0]['O'], maxent_results[1]['O']),
-       recall(maxent_results[0]['O'], maxent_results[1]['O']))
-       
+print_results(maxent_classifier, test_featureset, results, 'Maximum Entropy')
 #maxent_classifier.show_most_informative_features(10)
