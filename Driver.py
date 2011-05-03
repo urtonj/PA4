@@ -5,8 +5,8 @@ from nltk.corpus.reader import *
 from nltk.tokenize import RegexpTokenizer
 
 '''Setup for training/test data'''
-training_files = '/Users/jasonurton/Desktop/PA4_Data/training'
-test_files = '/Users/jasonurton/Desktop/PA4_Data/test'
+training_files = 'data/training'
+test_files = 'data/test'
 
 training_reader = ChunkedCorpusReader(training_files, r'wsj_.*\.pos',
     sent_tokenizer=RegexpTokenizer(r'(?<=/\.)\s*(?![^\[]*\])', gaps=True),
@@ -33,6 +33,18 @@ def get_previous_word(sent, i):
     if i == 0: return '<START>'
     else: return sent[i-1][0]
 
+def get_prev_pos(sent, i):
+    if i == 0: return '<START>'
+    else: return sent[i-1][1]
+    
+def get_next_word(sent, i):
+    if i == (len(sent)-1): return '<END>'
+    else: return sent[i+1][0]
+
+def get_next_pos(sent, i):
+    if i == (len(sent)-1): return '<END>'
+    else: return sent[i+1][1]
+      
 def get_SNP_suffix_1(sent, i):
     if i == 0: return '<START>'
     else: return sent[i-1][3]
@@ -44,11 +56,14 @@ def get_SNP_suffix_2(sent, i):
 def get_features(word, sent, i):
     features = {}
     features['Current Word'] = word[0]
-    features['POS'] = word[1]
+    features['Current POS'] = word[1]
     #features['NP Tag'] = word[2]
     features['Previous Word'] = get_previous_word(sent, i)
-    features['SNP Suffix (-1)'] = get_SNP_suffix_1(sent, i)
-    features['SNP Suffix (-2)'] = get_SNP_suffix_2(sent, i)
+    #features['Previous POS'] = get_prev_pos(sent, i)
+    features['Next Word'] = get_next_word(sent, i)
+    #features['Next POS'] = get_next_pos(sent, i)
+    #features['SNP Suffix (-1)'] = get_SNP_suffix_1(sent, i)
+    #features['SNP Suffix (-2)'] = get_SNP_suffix_2(sent, i)
     return features
 
 def get_featureset(data, featureset = []):
@@ -93,5 +108,6 @@ print_results(bayes_classifier, test_featureset, results, 'Naive Bayes')
 
 maxent_classifier = nltk.MaxentClassifier.train(training_featureset)
 maxent_results = get_results(maxent_classifier)
-print_results(maxent_classifier, test_featureset, results, 'Maximum Entropy')
+print_results(maxent_classifier, test_featureset, maxent_results, 
+    'Maximum Entropy')
 #maxent_classifier.show_most_informative_features(10)
